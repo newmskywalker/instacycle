@@ -1,0 +1,32 @@
+#!/bin/bash
+ 
+NEBULOUS_URL=${NEBULOUS_URL:-apis.traderonline.com}
+#NEBULOUS_URL=${NEBULOUS_URL:-api-dev.traderonline.com}
+NEBULOUS_VERSION=${NEBULOUS_VERSION:-0.14}
+#NEBULOUS_VERSION=${NEBULOUS_VERSION:-latest}
+NEBULOUS_CLIENT_ID=${NEBULOUS_CLIENT_ID:-HackU-TOL}
+NEBULOUS_CLIENT_SECRET=${NEBULOUS_CLIENT_SECRET:-0%hqaUC^^zlx]XV4<M|Mm#T1sBxIbl_O}
+#NEBULOUS_CLIENT_ID=${NEBULOUS_CLIENT_ID:-test}
+#NEBULOUS_CLIENT_SECRET=${NEBULOUS_CLIENT_SECRET:-test}
+ 
+_options=''
+_url=''
+for ((i=1;i<=$#;i++))
+do
+    if [ "${i}" -lt "${#}" ]
+    then
+        _options="${_options} ${!i}"
+    else
+        _url="${NEBULOUS_URL}/v${NEBULOUS_VERSION}/${!i}"
+    fi
+done
+ 
+if [ -z "${_url}" ]
+then
+    echo "You must provide the route to access!"
+    exit 1
+fi
+ 
+NEBULOUS_TOKEN=${NEBULOUS_TOKEN:-$(curl -X POST --data-urlencode client_id="${NEBULOUS_CLIENT_ID}" --data-urlencode client_secret="${NEBULOUS_CLIENT_SECRET}" --data-urlencode grant_type=client_credentials ${NEBULOUS_URL}/v${NEBULOUS_VERSION}/token | php -r '$token=json_decode(file_get_contents("php://stdin")); echo $token->access_token;')}
+ 
+curl -H "Authorization: Bearer ${NEBULOUS_TOKEN}" ${_options} "${_url}" | php -r 'echo(json_encode(json_decode(file_get_contents("php://stdin")), JSON_PRETTY_PRINT));'
